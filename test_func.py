@@ -74,19 +74,4 @@ def test_cis_total_filter(thres, clr_test=None):
     logger.info('\n\n######### Pass the test #########')
 
 
-    
-    
-    
-    # logger.debug('Start to sum up counts')
-    # check_nan = lambda x: np.isnan(x['count']).all()
-    
-    # check_result = np.sum(list(map(check_nan, bad_pixels_binid1)))
-    # assert check_result == len(bad_pixels_binid1)
-    # logger.info('Pass bin1 checkpoint')
-
-
-    # check_result = np.sum(list(map(check_nan, bad_pixels_binid2)))
-    # assert check_result == len(bad_pixels_binid2)
-    # logger.info('Pass bin2 checkpoint')
-
 
