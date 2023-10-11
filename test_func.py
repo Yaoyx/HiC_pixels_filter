@@ -1,5 +1,7 @@
+import os 
 import sys
-sys.path.append('/home1/yxiao977/labwork/Akita_dinoflagellate')
+cwd = os.getcwd()
+sys.path.append(cwd)
 import data_util
 import cooler
 import logging
