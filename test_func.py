@@ -57,7 +57,9 @@ def test_cis_total_filter(thres, clr_test=None):
 
     logger.debug('Start to test filter_pixels function...')
     output_path = f"/home1/yxiao977/sc1/train_akita/test_data/test_data_util_{thres}filtered.cool"
-    data_util.filter_pixels_by_masked_bin(clr_test, thres, output_path, bins_filters=None, nproc=16, chunksize=10_000_000)
+    bin_mask = data_util.generate_bin_mask(clr_test, [data_util.cis_total_ratio_filter], [0.5])
+    data_util.create_filtered_cooler(output_path, clr_test, bin_mask, nproc=16, chunksize=10_000_000)
+    
     clr_filtered = cooler.Cooler(output_path)
 
     # check if clr_filtered has nan cis_total ratio for bins filtered out
