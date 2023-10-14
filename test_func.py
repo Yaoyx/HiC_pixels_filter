@@ -57,8 +57,8 @@ def test_cis_total_filter(thres, clr_test=None):
 
     logger.debug('Start to test filter_pixels function...')
     output_path = f"/home1/yxiao977/sc1/train_akita/test_data/test_data_util_{thres}filtered.cool"
-    bin_mask = data_util.generate_bin_mask(clr_test, [data_util.cis_total_ratio_filter], [0.5])
-    data_util.create_filtered_cooler(output_path, clr_test, bin_mask, nproc=16, chunksize=10_000_000)
+    bin_mask = data_util.generate_bin_mask(clr_test, [data_util.cis_total_ratio_filter(0.5)])
+    data_util.create_filtered_cooler(output_path, clr_test, bin_mask, chunksize=10_000_000, nproc=16)
     
     clr_filtered = cooler.Cooler(output_path)
 
