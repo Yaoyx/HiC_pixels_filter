@@ -50,8 +50,8 @@ def _generate_test_example():
     return cooler.Cooler(clr_file)
 
 class TestClass():
-    def __init__(self):
-        self.clr = _generate_test_example()
+    def setup_class(cls):
+        cls.clr = _generate_test_example()
 
     # create a small toy example inside the test func with a human readable small data
     
@@ -87,6 +87,6 @@ class TestClass():
         assert np.isnan(cis_total_cov_filtered[~bin_mask]).all()
         # check if all good bins have value for cis total ratio in new cool file
         assert ~np.isnan(cis_total_cov_filtered[bin_mask]).any()
-
+        
         # check if good bins has nan cis-total ratio
         logger.info("\n\n######### create_filtered_cooler Pass the test #########")
