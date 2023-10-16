@@ -4,33 +4,39 @@ import cooltools
 import cooler
 import functools
 from multiprocessing import Pool
-from inspect import signature
-
-
 import logging
 
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s : %(message)s")
 logger = logging.getLogger("data_util")
-logger.setLevel(logging.DEBUG)
 logger.propagate = False  # Disable propagation to the root logger
 
 ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+ch.setLevel(logging.INFO)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
 def add_partial_thres_arguments(func):
-    def wrapper(*args, **kwargs):
-        if len(args) + len(kwargs) == 1:
-            if len(args) == 1:
-                thres_value = args[0]
-            else:
-                thres_value = kwargs["thres"]
+    """
+    Decorator that adds a threshold argument to a function and returns a partial function.
 
-            return functools.partial(func, thres=thres_value)
-        else:
-            return func(*args, **kwargs)
+    The returned partial function has the threshold argument set to the provided value.
+
+    Parameters
+    ----------
+    func : callable
+        The function to decorate.
+
+    Returns
+    -------
+    callable
+        A new function that takes a threshold argument and returns a partial function of `func`.
+    """
+
+    def wrapper(thres):
+        if not isinstance(thres, float):
+            raise ValueError("Threshold must be a float > 0 or <= 1.0")
+        return functools.partial(func, thres=thres)
 
     return wrapper
 
@@ -51,6 +57,10 @@ def cis_total_ratio_filter(clr, thres=0.5):
     -------
     numpy.ndarray
         An array of bin mask.
+
+    Note
+    ----
+    Generate a filter by giving a threshold
     """
     coverage = cooltools.coverage(clr)
     cis_total_cov = coverage[0] / coverage[1]
@@ -63,15 +73,15 @@ def generate_bin_mask(clr, filters=[None]):
     """
     Generates a binary mask for a given `clr` object based on a list of filters and thresholds.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     clr : cooler.Cooler
         A cooler object containing Hi-C contact matrices.
     filters : list
         A list of filter functions to apply to the contact matrices.
 
-    Returns:
-    --------
+    Returns
+    -------
     bin_mask : numpy.ndarray
         A binary mask indicating which genomic bins pass all filters.
     """
@@ -112,15 +122,15 @@ def pixel_iter_chunks(clr, chunksize):
     """
     Iterate over the pixels of a cooler object in chunks of a given size.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     clr : cooler.Cooler
         A cooler object containing Hi-C data.
     chunksize : int
         The size of each chunk of pixels to iterate over.
 
-    Yields:
-    -------
+    Yields
+    ------
     chunk : numpy.ndarray
         A chunk of pixels of size `chunksize`.
     """
@@ -131,33 +141,35 @@ def pixel_iter_chunks(clr, chunksize):
 
 
 def pool_decorator(func):
+    """
+    A decorator function that enables multiprocessing for a given function.
+
+    Parameters
+    ----------
+    func : callable
+        The function to be decorated.
+
+    Returns
+    -------
+    A wrapper function that enables multiprocessing for the given function.
+    """
+
     def wrapper(*args, **kwargs):
         pool = None
-        if (
-            "map" not in kwargs.keys()
-            and len(args) <= len(signature(func).parameters) - 1
-        ):
-            if "nproc" in kwargs.keys():
-                if kwargs["nproc"] <= 1:
-                    mymap = map
-                else:
-                    logger.debug("Start to use pool")
-                    pool = Pool(kwargs["nproc"])
-                    mymap = pool.map
-            elif len(args) == len(signature(func).parameters) - 1:
-                if args[len(signature(func).parameters) - 2] <= 1:
-                    mymap = map
-                else:
-                    logger.debug("Start to use pool")
-                    pool = Pool(args[len(signature(func).parameters) - 2])
-                    mymap = pool.map
+        if "nproc" in kwargs.keys():
+            if kwargs["nproc"] > 1:
+                logger.debug("Start to use pool")
+                pool = Pool(kwargs["nproc"])
+                mymap = pool.map
             else:
                 mymap = map
 
             func(*args, **kwargs, map=mymap)
 
         else:
-            func(*args, **kwargs)
+            raise TypeError(
+                "nproc must be specified as a keyword argument (e.g. nproc=1, nproc=5...)"
+            )
 
         if pool != None:
             pool.close()
