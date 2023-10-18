@@ -50,6 +50,7 @@ def _generate_test_example():
     return cooler.Cooler(clr_file)
 
 class TestClass():
+    @classmethod
     def setup_class(cls):
         cls.clr = _generate_test_example()
 
@@ -58,7 +59,7 @@ class TestClass():
     def test_generate_bin_mask(self):
         logger.debug("Start to test generate_bin_mask function...")
         bin_mask = data_util.generate_bin_mask(
-            self.clr, [data_util.cis_total_ratio_filter(0.5)]
+            self.clr, [data_util.cis_total_ratio_filter(thres=0.5)], store=True
         )
 
         # check if bin mask is correctly generated
@@ -72,7 +73,7 @@ class TestClass():
 
         output_path = f"./test_data_util_{thres}filtered.cool"
         bin_mask = data_util.generate_bin_mask(
-            self.clr, [data_util.cis_total_ratio_filter(0.5)]
+            self.clr, [data_util.cis_total_ratio_filter(thres=0.5)]
         )
         data_util.create_filtered_cooler(
             output_path, self.clr, bin_mask, chunksize=10_000_000, nproc=16
